@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set +eu
 PYTHON_VERSION=$(cat runtime.txt)
 

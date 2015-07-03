@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 
+# Portions Copyright (C) 2015 Intel Corporation
+
 # Usage:
 #
 #     $ bin/compile <build-dir> <cache-dir> <env-path>
 
 # Fail fast and fail hard.
 set -eo pipefail
-
+#debug
+if [[ "${BUILDPACK_DEBUG:-}" = "1" ]]; then
+   echo -e "Running:\n\t$0 $@"
+   set -x
+   limits=$(ulimit -a 2>&1)
+   echo "Limits are $limits"
+fi
 # Prepend proper path for virtualenv hackery. This will be deprecated soon.
 export PATH=:/usr/local/bin:$PATH
 
@@ -32,7 +40,12 @@ function bpwatch() {
   :
 }
 
-CACHED_DIRS=".heroku"
+
+if [ -f Aptfile ]; then
+  CACHED_DIRS=".heroku .apt .profile.d"
+else
+  CACHED_DIRS=".heroku"
+fi
 
 # Static configurations for virtualenv caches.
 VIRTUALENV_LOC=".heroku/venv"
@@ -172,6 +185,11 @@ set -e
 
 mkdir -p $(dirname $PROFILE_PATH)
 
+# APT packages
+if [ -f Aptfile ]; then
+  source $BIN_DIR/steps/apt
+fi
+
 # Install Python.
 source $BIN_DIR/steps/python
 
@@ -232,7 +250,8 @@ bpwatch stop dump_cache
 
 # ### Fin.
 bpwatch start appdir_commit
-  deep-mv $BUILD_DIR $ORIG_BUILD_DIR
+
+deep-mv $BUILD_DIR $ORIG_BUILD_DIR
 bpwatch stop appdir_commit
 
 bpwatch start anvil_appdir_commit
