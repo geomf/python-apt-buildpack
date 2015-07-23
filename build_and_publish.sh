@@ -10,6 +10,9 @@ set -eou pipefail
 TARGET_BUILDPACK_NAME=python-apt-buildpack-noncached
 BUILDPACK_FILE=python_buildpack-*v*.zip
 
+echo "Getting build dependencies..."
+BUNDLE_GEMFILE=cf.Gemfile bundle
+
 echo "Building..."
 rm -f ${BUILDPACK_FILE} || true
 BUNDLE_GEMFILE=cf.Gemfile bundle exec buildpack-packager uncached
